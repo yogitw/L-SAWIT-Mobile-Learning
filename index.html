@@ -1,0 +1,436 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  BookOpen, 
+  Award, 
+  Download, 
+  CheckCircle, 
+  ChevronRight, 
+  Layout, 
+  User, 
+  Settings,
+  HardHat,
+  ClipboardList,
+  Activity,
+  Search,
+  ArrowLeft,
+  PlayCircle,
+  Clock,
+  Trophy,
+  AlertTriangle,
+  Send,
+  Bell,
+  BarChart3,
+  Wifi,
+  WifiOff,
+  RefreshCw,
+  Users,
+  TrendingDown,
+  Camera,
+  FileText,
+  MapPin,
+  CheckSquare,
+  XCircle,
+  FolderOpen,
+  Wrench,
+  ShieldCheck,
+  AlertOctagon,
+  Trash2,
+  Grape,
+  Medal,
+  Star,
+  Calculator,
+  Truck,
+  Eye,
+  Book,
+  Filter,
+  FileSpreadsheet,
+  Zap,
+  Target,
+  Globe
+} from 'lucide-react';
+
+const App = () => {
+  const [userRole, setUserRole] = useState(null);
+  const [currentPage, setCurrentPage] = useState('landing');
+  const [activeTab, setActiveTab] = useState('belajar');
+  const [selectedModule, setSelectedModule] = useState(null);
+  const [progress, setProgress] = useState({});
+  const [points, setPoints] = useState(0);
+  const [isOnline, setIsOnline] = useState(true);
+  
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [quizFeedback, setQuizFeedback] = useState(null);
+  const [examMode, setExamMode] = useState(false);
+  const [showCertificate, setShowCertificate] = useState(false);
+
+  // Status Koneksi Simulasi
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsOnline(prev => !prev);
+    }, 25000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const roles = [
+    { id: 'admin', title: 'Panel Pengawas (Admin)', icon: <BarChart3 className="w-6 h-6 text-orange-400" />, description: 'Monitoring Kelulusan & Ranking' },
+    { id: 'globaltelling', title: 'Petugas Global Telling', icon: <Globe className="w-6 h-6 text-indigo-400" />, description: 'Sensus Produksi 4 Bulanan' },
+    { id: 'akp', title: 'Petugas AKP', icon: <Target className="w-6 h-6 text-rose-400" />, description: 'Sensus Angka Kerapatan Panen' },
+    { id: 'kap_insp', title: 'KAP Inspeksi', icon: <ShieldCheck className="w-6 h-6 text-blue-400" />, description: 'Audit Buah Mentah & Mutu Ancak' },
+    { id: 'kranicek', title: 'Krani Cek Sawit', icon: <FileSpreadsheet className="w-6 h-6 text-pink-400" />, description: 'Administrasi & Pengiriman PKS' },
+    { id: 'mandor1', title: 'Mandor 1', icon: <Trophy className="w-6 h-6 text-yellow-500" />, description: 'Kompetensi Supervisi Lapangan' },
+    { id: 'krani1', title: 'Krani 1', icon: <FileText className="w-6 h-6 text-emerald-400" />, description: 'Administrasi Utama Afdeling' },
+    { id: 'kraniprod', title: 'Krani Produksi', icon: <Calculator className="w-6 h-6 text-purple-400" />, description: 'Rekapitulasi Hasil Panen' },
+    { id: 'mandorpanen', title: 'Mandor Panen', icon: <HardHat className="w-6 h-6 text-red-400" />, description: 'Manajemen Ancak & Mutu' },
+  ];
+
+  // DATA MODUL PEMBELAJARAN & UJIAN
+  const allModules = {
+    globaltelling: [
+      { id: 'gt_1', title: 'Video: Identifikasi Fase Bunga & Buah', duration: '18 Min', category: 'Sensus', points: 150, isExam: true, quiz: { question: "Bunga betina yang baru mekar (reseptif) dihitung sebagai produksi untuk bulan ke berapa?", options: [{ id: 0, text: "Bulan ke-1", correct: false }, { id: 1, text: "Bulan ke-5 atau ke-6", correct: true }, { id: 2, text: "Bulan depan", correct: false }] } },
+      { id: 'gt_2', title: 'Video: Penomoran Pokok Sampel', duration: '12 Min', category: 'Metodologi', points: 150, isExam: true, quiz: { question: "Berapa persentase pokok sampel ideal untuk Global Telling?", options: [{ id: 0, text: "10%", correct: false }, { id: 1, text: "1-2% dari populasi", correct: true }, { id: 2, text: "Semua pokok", correct: false }] } }
+    ],
+    akp: [
+      { id: 'akp_1', title: 'Video: Teknik Sensus Baris Sampel', duration: '15 Min', category: 'Sensus', points: 130, isExam: true, quiz: { question: "Kapan waktu terbaik melakukan sensus AKP?", options: [{ id: 0, text: "Sore hari setelah panen", correct: false }, { id: 1, text: "Pagi hari H-1 sebelum panen esok", correct: true }, { id: 2, text: "Saat truk tiba", correct: false }] } },
+      { id: 'akp_2', title: 'Video: Estimasi Kebutuhan Transport', duration: '10 Min', category: 'Logistik', points: 130, isExam: true, quiz: { question: "Data AKP digunakan krani transport untuk menentukan?", options: [{ id: 0, text: "Jumlah pupuk", correct: false }, { id: 1, text: "Jumlah unit truk yang masuk blok", correct: true }, { id: 2, text: "Upah pemanen", correct: false }] } }
+    ],
+    kap_insp: [
+      { id: 'kap_1', title: 'Video: Audit Kriteria Matang Panen', duration: '14 Min', category: 'Mutu', points: 150, isExam: true, quiz: { question: "Berapa toleransi janjang MENTAH yang diperbolehkan dikirim ke PKS?", options: [{ id: 0, text: "5%", correct: false }, { id: 1, text: "0% (Nol Toleransi)", correct: true }, { id: 2, text: "2%", correct: false }] } },
+      { id: 'kap_2', title: 'Video: Pemeriksaan Mutu Ancak', duration: '12 Min', category: 'Inspeksi', points: 150, isExam: true, quiz: { question: "Apa yang dicari saat audit mutu ancak di gawang mati?", options: [{ id: 0, text: "Kayu mati", correct: false }, { id: 1, text: "Brondolan Tinggal (BRT)", correct: true }, { id: 2, text: "Bekas kaki", correct: false }] } }
+    ],
+    kranicek: [
+      { id: 'kc_1', title: 'Video: Validasi SPB (Surat Pengantar Buah)', duration: '15 Min', category: 'Admin', points: 120, isExam: true, quiz: { question: "Siapa yang wajib menandatangani SPB sebelum truk keluar?", options: [{ id: 0, text: "Supir saja", correct: false }, { id: 1, text: "Krani Cek & Mandor/Asisten", correct: true }, { id: 2, text: "Pemanen", correct: false }] } },
+      { id: 'kc_2', title: 'Video: Penataan Janjang di Truck', duration: '10 Min', category: 'Transport', points: 120, isExam: true, quiz: { question: "Mengapa tangkai panjang harus dipotong mepet?", options: [{ id: 0, text: "Biar rapi", correct: false }, { id: 1, text: "Mencegah potongan harga (potongan sampah) di PKS", correct: true }, { id: 2, text: "Agar muat banyak", correct: false }] } }
+    ],
+    mandor1: [
+      { id: 'm1_1', title: 'Video: Supervisi Rencana Kerja Harian', duration: '20 Min', category: 'Leadership', points: 180, isExam: true, quiz: { question: "Apa prioritas utama Mandor 1 di pagi hari?", options: [{ id: 0, text: "Sarapan", correct: false }, { id: 1, text: "Memastikan penyebaran tenaga kerja sesuai ancaknya", correct: true }, { id: 2, text: "Menghitung gaji", correct: false }] } },
+      { id: 'm1_2', title: 'Video: Penanganan Konflik di Lapangan', duration: '15 Min', category: 'SDM', points: 180, isExam: true, quiz: { question: "Jika pemanen protes karena ancak berat, apa tindakan terbaik?", options: [{ id: 0, text: "Biarkan saja", correct: false }, { id: 1, text: "Verifikasi lapangan & beri bantuan/penyesuaian adil", correct: true }, { id: 2, text: "Pecat pemanen", correct: false }] } }
+    ],
+    krani1: [
+      { id: 'k1_1', title: 'Video: Input Data Laporan Afdeling', duration: '20 Min', category: 'Data', points: 160, isExam: true, quiz: { question: "Data apa yang menjadi dasar pembuatan Laporan Harian Afdeling (LHA)?", options: [{ id: 0, text: "Buku Warung", correct: false }, { id: 1, text: "Buku Mandor & SPB Valid", correct: true }, { id: 2, text: "Ingatan Mandor", correct: false }] } },
+      { id: 'k1_2', title: 'Video: Rekonsiliasi Stok Logistik', duration: '15 Min', category: 'Gudang', points: 160, isExam: true, quiz: { question: "Apa tujuan stock opname alat kerja setiap bulan?", options: [{ id: 0, text: "Menjual alat", correct: false }, { id: 1, text: "Memastikan ketersediaan & kondisi alat pendukung produksi", correct: true }, { id: 2, text: "Hanya rutinitas", correct: false }] } }
+    ],
+    kraniprod: [
+      { id: 'kp_1', title: 'Video: Rekapitulasi Produksi Blok', duration: '15 Min', category: 'Statistik', points: 140, isExam: true, quiz: { question: "Jika terjadi selisih janjang antara Afdeling dan PKS, apa langkah pertama?", options: [{ id: 0, text: "Ubah data PKS", correct: false }, { id: 1, text: "Cek fisik sisa buah di TPH atau restan di blok", correct: true }, { id: 2, text: "Abaikan selisihnya", correct: false }] } },
+      { id: 'kp_2', title: 'Video: Monitoring Yield Per Hektar', duration: '12 Min', category: 'Analisa', points: 140, isExam: true, quiz: { question: "Yield rendah di blok subur biasanya disebabkan oleh?", options: [{ id: 0, text: "Tanah rusak", correct: false }, { id: 1, text: "Losses tinggi atau pusingan panen meleset", correct: true }, { id: 2, text: "Hama wereng", correct: false }] } }
+    ],
+    mandorpanen: [
+      { id: 'mp_1', title: 'Video: Kriteria Janjang Matang', duration: '15 Min', category: 'Teknis', points: 150, isExam: true, quiz: { question: "Berapa jumlah brondolan lepas di piringan untuk standar matang?", options: [{ id: 0, text: "Min 1 brondolan/kg berat janjang (atau sesuai SOP kebun)", correct: true }, { id: 1, text: "Tidak perlu brondolan", correct: false }, { id: 2, text: "100 brondolan", correct: false }] } },
+      { id: 'mp_2', title: 'Video: Safety dalam Pemanenan', duration: '10 Min', category: 'K3', points: 150, isExam: true, quiz: { question: "Alat pelindung diri (APD) wajib untuk pemanen adalah?", options: [{ id: 0, text: "Topi koboi", correct: false }, { id: 1, text: "Helm, Sepatu Safety, & Sarung Egrek", correct: true }, { id: 2, text: "Sandal jepit", correct: false }] } }
+    ]
+  };
+
+  // DATA BUKU SAKU
+  const pocketBooks = {
+    globaltelling: [{ title: "Prediksi Produksi", content: "Lakukan hitung bunga betina (untuk 5 bulan ke depan) dan buah hitam (3 bulan ke depan) pada pokok sampel tetap." }],
+    akp: [{ title: "Angka Kerapatan Panen", content: "Rumus: Janjang Matang / Pokok Sensus. Digunakan untuk mengatur ritase truk pengangkut." }],
+    kap_insp: [{ title: "Audit Mutu", content: "Target: Zero Mentah, Zero Brondolan Tinggal, Zero Buah Restan." }],
+    kranicek: [{ title: "Tugas TPH", content: "Pastikan nomor pemanen benar, janjang bersih dari sampah, dan brondolan bersih dari tanah." }],
+    mandor1: [{ title: "Supervisi", content: "Kunci keberhasilan adalah koordinasi antar Mandor Panen dan Krani di lapangan." }],
+    krani1: [{ title: "Akurasi Data", content: "Satu angka salah di LHA berakibat fatal pada perhitungan premi dan gaji." }],
+    kraniprod: [{ title: "Kontrol Produksi", content: "Pantau pusingan panen agar tetap di standar 7-10 hari untuk mutu terbaik." }],
+    mandorpanen: [{ title: "Disiplin Pemanen", content: "Pemanen adalah ujung tombak. Pastikan mereka memanen hanya buah yang layak." }]
+  };
+
+  const completeModule = (id, pts, isExam) => {
+    if (!progress[id]) setPoints(prev => prev + pts);
+    if (isExam && quizFeedback?.status === 'correct') {
+      setShowCertificate(true);
+    }
+    setProgress(prev => ({ ...prev, [id]: true }));
+    setExamMode(false);
+    setQuizFeedback(null);
+    setSelectedAnswer(null);
+    setCurrentPage('dashboard');
+  };
+
+  // KOMPONEN UTAMA
+  const LandingPage = () => (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 p-6 text-white text-center">
+      <div className="w-20 h-20 bg-emerald-600 rounded-[30px] flex items-center justify-center mb-6 shadow-2xl animate-pulse">
+        <Award className="w-10 h-10 text-white" />
+      </div>
+      <h1 className="text-3xl font-black mb-1 tracking-tighter italic uppercase leading-none">L-SAWIT <span className="text-emerald-500">PRO</span></h1>
+      <p className="text-slate-500 mb-10 max-w-xs text-[10px] font-bold uppercase tracking-[0.2em]">Sertifikasi Jabatan & Monitoring</p>
+      
+      <div className="w-full space-y-2 overflow-y-auto max-h-[55vh] px-2 custom-scrollbar">
+        {roles.map((role) => (
+          <button
+            key={role.id}
+            onClick={() => { 
+              setUserRole(role.id); 
+              setCurrentPage(role.id === 'admin' ? 'admin_panel' : 'dashboard'); 
+            }}
+            className={`w-full p-4 rounded-2xl flex items-center transition-all border border-white/5 active:scale-95 ${role.id === 'admin' ? 'bg-slate-900 shadow-xl' : 'bg-slate-800/40 hover:bg-slate-800'}`}
+          >
+            <div className="p-3 bg-white/5 rounded-xl">{role.icon}</div>
+            <div className="ml-4 text-left">
+              <div className="font-black text-xs uppercase tracking-tighter text-white">{role.title}</div>
+              <div className="text-[9px] text-slate-400 font-bold uppercase tracking-tight">{role.description}</div>
+            </div>
+            <ChevronRight className="ml-auto w-4 h-4 text-slate-600" />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const Dashboard = () => {
+    const roleData = roles.find(r => r.id === userRole);
+    const userModules = allModules[userRole] || [];
+    const userBooks = pocketBooks[userRole] || [];
+    
+    return (
+      <div className="min-h-screen bg-gray-50 pb-24">
+        <div className={`py-2 px-4 flex items-center justify-between ${isOnline ? 'bg-emerald-600' : 'bg-rose-600'} text-white`}>
+          <div className="flex items-center gap-2">
+            {isOnline ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+            <span className="text-[8px] font-black uppercase tracking-widest">{isOnline ? 'Online' : 'Offline'}</span>
+          </div>
+          <span className="text-[8px] font-black uppercase tracking-widest">{userRole}</span>
+        </div>
+
+        <div className="bg-slate-900 p-8 rounded-b-[45px] shadow-2xl text-white">
+          <div className="flex justify-between items-center mb-6">
+            <div className="max-w-[70%]">
+               <p className="text-emerald-500 text-[10px] font-black uppercase tracking-widest mb-1">Kurikulum Jabatan</p>
+               <h2 className="text-2xl font-black uppercase tracking-tighter italic leading-none">{roleData?.title}</h2>
+            </div>
+            <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10">
+               <User className="w-6 h-6" />
+            </div>
+          </div>
+          <div className="flex gap-3">
+             <div className="flex-1 bg-white/5 p-4 rounded-3xl border border-white/5">
+                <p className="text-[8px] text-slate-400 font-bold uppercase mb-1">Skor XP</p>
+                <span className="text-xl font-black text-emerald-400">{points}</span>
+             </div>
+             <div className="flex-1 bg-white/5 p-4 rounded-3xl border border-white/5">
+                <p className="text-[8px] text-slate-400 font-bold uppercase mb-1">Sertifikasi</p>
+                <span className="text-xl font-black text-yellow-500">{Object.values(progress).filter(v => v).length}/{userModules.length}</span>
+             </div>
+          </div>
+        </div>
+
+        <div className="px-6 -mt-6">
+           <div className="bg-white p-2 rounded-3xl shadow-xl flex gap-1 border border-slate-100">
+              <button 
+                onClick={() => setActiveTab('belajar')}
+                className={`flex-1 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'belajar' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-50'}`}
+              >
+                Modul Ujian
+              </button>
+              <button 
+                onClick={() => setActiveTab('bukusaku')}
+                className={`flex-1 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'bukusaku' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-50'}`}
+              >
+                Buku Saku
+              </button>
+           </div>
+        </div>
+
+        <div className="p-6">
+          {activeTab === 'belajar' ? (
+             <div className="space-y-4">
+               {userModules.map((mod) => (
+                 <div key={mod.id} className="bg-white p-5 rounded-[30px] border border-slate-100 flex items-center shadow-sm">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${progress[mod.id] ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                       {progress[mod.id] ? <CheckSquare className="w-6 h-6" /> : <PlayCircle className="w-6 h-6" />}
+                    </div>
+                    <div className="ml-5 flex-1">
+                       <p className="text-[8px] font-black uppercase text-slate-400 mb-1">{mod.category} • {mod.duration}</p>
+                       <h4 className="font-black text-slate-800 text-[11px] leading-tight uppercase tracking-tighter">{mod.title}</h4>
+                    </div>
+                    <button onClick={() => { setSelectedModule(mod); setCurrentPage('learning'); }} className="bg-slate-50 p-3 rounded-2xl">
+                       <ChevronRight className="w-4 h-4 text-slate-300" />
+                    </button>
+                 </div>
+               ))}
+             </div>
+          ) : (
+            <div className="space-y-4">
+               {userBooks.map((book, idx) => (
+                 <div key={idx} className="bg-white p-6 rounded-[35px] border-l-8 border-indigo-500 shadow-sm">
+                    <h4 className="font-black text-slate-800 text-[10px] uppercase mb-2 tracking-wide">
+                       {book.title}
+                    </h4>
+                    <p className="text-[11px] text-slate-600 leading-relaxed font-medium bg-indigo-50/50 p-4 rounded-2xl">{book.content}</p>
+                 </div>
+               ))}
+            </div>
+          )}
+        </div>
+
+        {/* Floating Navigation */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t p-4 pb-8 flex justify-around items-center z-40">
+           <button onClick={() => setCurrentPage('landing')} className="flex flex-col items-center group">
+              <Layout className="w-6 h-6 text-slate-300 group-hover:text-emerald-600 transition-colors" />
+              <span className="text-[8px] font-black uppercase mt-1 text-slate-400">Home</span>
+           </button>
+           <button className="flex flex-col items-center">
+              <div className="bg-emerald-600 p-4 rounded-full -mt-12 shadow-xl shadow-emerald-500/30 border-4 border-white">
+                 <Search className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-[8px] font-black uppercase mt-1 text-emerald-600">Scan QR</span>
+           </button>
+           <button className="flex flex-col items-center group">
+              <Settings className="w-6 h-6 text-slate-300 group-hover:text-emerald-600 transition-colors" />
+              <span className="text-[8px] font-black uppercase mt-1 text-slate-400">Settings</span>
+           </button>
+        </div>
+
+        {showCertificate && (
+           <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-6 animate-in zoom-in">
+              <div className="bg-white w-full max-w-sm rounded-[50px] p-10 text-center border-t-[12px] border-emerald-500 shadow-2xl">
+                 <Trophy className="w-16 h-16 text-emerald-600 mx-auto mb-6" />
+                 <h2 className="text-2xl font-black uppercase text-slate-900 tracking-tighter italic mb-2">LULUS!</h2>
+                 <p className="text-[9px] text-slate-500 font-bold uppercase mb-10 tracking-[0.2em]">Sertifikat Modul Telah Terbit</p>
+                 <button onClick={() => setShowCertificate(false)} className="w-full bg-slate-900 text-white font-black py-5 rounded-3xl text-[10px] uppercase tracking-widest">Klaim XP</button>
+              </div>
+           </div>
+        )}
+      </div>
+    );
+  };
+
+  const LearningPlayer = () => {
+    const quizData = selectedModule?.quiz;
+    const handleSelection = (opt) => {
+      setSelectedAnswer(opt.id);
+      setQuizFeedback(opt.correct ? { status: 'correct', msg: 'Jawaban Benar! Anda kompeten.' } : { status: 'wrong', msg: 'Salah. Simak kembali video pembelajarannya.' });
+    };
+
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col font-sans">
+        <div className="p-5 flex items-center gap-4 bg-slate-900/80 backdrop-blur-md sticky top-0 z-10 border-b border-white/5">
+          <button onClick={() => { setCurrentPage('dashboard'); setExamMode(false); }} className="p-3 bg-white/5 rounded-2xl"><ArrowLeft className="w-5 h-5 text-emerald-500" /></button>
+          <div>
+            <h3 className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Kursus & Ujian</h3>
+            <p className="text-xs font-black truncate uppercase italic tracking-tighter">{selectedModule?.title}</p>
+          </div>
+        </div>
+        
+        <div className="flex-1 p-6 flex flex-col justify-center">
+          {!examMode ? (
+            <div className="animate-in fade-in">
+               <div className="w-full aspect-video bg-slate-900 rounded-[40px] border border-white/10 flex flex-col items-center justify-center mb-10 shadow-3xl overflow-hidden relative">
+                  <PlayCircle className="w-16 h-16 text-indigo-400 mb-2" />
+                  <p className="text-[9px] font-black uppercase text-slate-500 tracking-widest">[ Simulasi Video Jabatan ]</p>
+                  <div className="absolute bottom-4 left-6 right-6">
+                     <div className="h-1 bg-white/10 rounded-full w-full">
+                        <div className="h-full bg-indigo-500 w-1/4"></div>
+                     </div>
+                  </div>
+               </div>
+               <div className="bg-indigo-500/5 p-6 rounded-[35px] border border-indigo-500/10 text-center">
+                  <h4 className="font-black text-[10px] uppercase mb-2 tracking-widest text-indigo-400">Instruksi Pembelajaran:</h4>
+                  <p className="text-[11px] text-slate-400 leading-relaxed italic">"Simak video teknik operasional hingga selesai untuk membuka kunci soal ujian kompetensi."</p>
+               </div>
+            </div>
+          ) : (
+            <div className="animate-in slide-in-from-bottom">
+              <div className="mb-6 flex justify-center">
+                 <div className="px-4 py-2 bg-emerald-500/10 rounded-full border border-emerald-500/20">
+                    <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Tes Kompetensi Mandiri</span>
+                 </div>
+              </div>
+              <h4 className="text-lg font-black mb-10 text-white leading-tight uppercase tracking-tighter text-center italic">"{quizData?.question}"</h4>
+              <div className="space-y-3">
+                 {quizData?.options.map((opt) => (
+                    <button 
+                      key={opt.id}
+                      disabled={quizFeedback !== null}
+                      onClick={() => handleSelection(opt)}
+                      className={`w-full text-left p-6 rounded-[30px] text-[10px] transition-all border-2 flex items-center justify-between ${
+                        selectedAnswer === opt.id 
+                          ? (opt.correct ? 'bg-emerald-600 border-emerald-400' : 'bg-rose-600 border-rose-400')
+                          : 'bg-white/5 border-white/5 hover:bg-white/10'
+                      }`}
+                    >
+                      <span className="font-black uppercase tracking-tighter leading-snug pr-4">{opt.text}</span>
+                      {selectedAnswer === opt.id && (opt.correct ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />)}
+                    </button>
+                 ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white text-slate-900 p-8 rounded-t-[50px]">
+          <button 
+            disabled={examMode && quizFeedback?.status !== 'correct'}
+            onClick={() => {
+              if (!examMode) setExamMode(true);
+              else completeModule(selectedModule.id, selectedModule.points, selectedModule.isExam);
+            }}
+            className="w-full font-black py-5 rounded-[30px] active:scale-95 transition-all flex items-center justify-center gap-3 uppercase tracking-widest text-[11px] italic bg-slate-900 text-white shadow-xl disabled:bg-slate-100 disabled:text-slate-300"
+          >
+            {!examMode ? 'Mulai Ujian Kompetensi' : 'Selesaikan Ujian'}
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // MOCK ADMIN PANEL
+  const AdminPanel = () => (
+    <div className="min-h-screen bg-slate-50 pb-20">
+      <div className="bg-slate-900 p-8 rounded-b-[40px] text-white shadow-2xl">
+        <div className="flex justify-between items-center mb-8">
+           <button onClick={() => setCurrentPage('landing')} className="p-2 bg-white/5 rounded-xl"><ArrowLeft className="w-5 h-5" /></button>
+           <h2 className="text-lg font-black uppercase tracking-tighter italic">Pengawas <span className="text-orange-400">Dashboard</span></h2>
+           <div className="w-10 h-10 bg-orange-400 rounded-full flex items-center justify-center font-black text-sm text-slate-900">AD</div>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+           <div className="bg-white/5 p-4 rounded-3xl text-center">
+              <p className="text-[8px] text-slate-400 font-bold uppercase mb-1">Total Karyawan</p>
+              <p className="text-xl font-black">186</p>
+           </div>
+           <div className="bg-white/5 p-4 rounded-3xl text-center">
+              <p className="text-[8px] text-slate-400 font-bold uppercase mb-1">Telah Lulus</p>
+              <p className="text-xl font-black text-emerald-400">142</p>
+           </div>
+           <div className="bg-white/5 p-4 rounded-3xl text-center flex flex-col items-center justify-center">
+              <Trophy className="w-5 h-5 text-yellow-500" />
+           </div>
+        </div>
+      </div>
+
+      <div className="p-6">
+         <div className="flex items-center justify-between mb-4">
+            <h3 className="font-black text-[10px] uppercase tracking-widest text-slate-400 italic">Leaderboard Kompetensi</h3>
+            <Filter className="w-4 h-4 text-slate-400" />
+         </div>
+         <div className="space-y-3">
+            {['Dedi Wijaya', 'Siti Aminah', 'Eko Prasetyo', 'Hendra Wijaya', 'Rina Sari'].map((name, idx) => (
+              <div key={idx} className="bg-white p-4 rounded-[25px] border border-slate-100 flex items-center shadow-sm">
+                 <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-black text-[10px] text-slate-400">
+                    {idx + 1}
+                 </div>
+                 <div className="ml-4 flex-1">
+                    <h4 className="font-black text-xs text-slate-800 uppercase tracking-tighter">{name}</h4>
+                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Mandor / Krani</p>
+                 </div>
+                 <div className="text-right">
+                    <p className="text-xs font-black text-slate-800">520 <span className="text-[8px] text-slate-400 font-black">XP</span></p>
+                    <div className="flex items-center gap-1 justify-end">
+                       <Zap className="w-2 h-2 text-emerald-500" />
+                       <span className="text-[8px] font-black text-emerald-600 uppercase">Kompeten</span>
+                    </div>
+                 </div>
+              </div>
+            ))}
+         </div>
+      </div>
+    </div>
+  );
+
+  switch (currentPage) {
+    case 'dashboard': return <Dashboard />;
+    case 'admin_panel': return <AdminPanel />;
+    case 'learning': return <LearningPlayer />;
+    default: return <LandingPage />;
+  }
+};
+
+export default App;
