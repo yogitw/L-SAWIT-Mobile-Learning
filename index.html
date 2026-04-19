@@ -86,17 +86,8 @@ const App = () => {
     }
   };
 
-  // Ensure app works with GitHub Pages base path
   useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.replace('#/', '');
-      if (hash && hash !== currentPage) {
-        // Logic for hash routing if needed
-      }
-    };
-    window.addEventListener('hashchange', handleHashChange);
     window.scrollTo(0, 0);
-    return () => window.removeEventListener('hashchange', handleHashChange);
   }, [currentPage]);
 
   // View Components
@@ -243,9 +234,9 @@ const App = () => {
           ) : (
             <div className="animate-in slide-in-from-bottom">
               <p className="text-center text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-6">Ujian Kompetensi</p>
-              <h2 className="text-lg font-black text-center mb-10 uppercase italic leading-tight">"{selectedModule.question}"</h2>
+              <h2 className="text-lg font-black text-center mb-10 uppercase italic leading-tight">"{selectedModule?.question}"</h2>
               <div className="space-y-3">
-                {selectedModule.options.map((opt, idx) => (
+                {selectedModule?.options.map((opt, idx) => (
                   <button 
                     key={idx}
                     disabled={quizFeedback === 'correct'}
@@ -280,6 +271,12 @@ const App = () => {
           .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
           .animate-in { animation: fadeIn 0.4s ease-out; }
           @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+          .animate-shake { animation: shake 0.5s linear; }
+          @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+          }
         `}</style>
       </div>
     );
