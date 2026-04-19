@@ -1,288 +1,263 @@
-import React, { useState, useEffect } from 'react';
-
-// Custom SVG Icons to replace lucide-react for stability in production
-const Icon = ({ name, className = "w-6 h-6" }) => {
-  const icons = {
-    award: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"/><circle cx="12" cy="8" r="6"/></svg>,
-    chevron: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m9 18 6-6-6-6"/></svg>,
-    play: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><path d="m9 8 8 4-8 4Z"/></svg>,
-    check: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M20 6 9 17l-5-5"/></svg>,
-    user: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
-    back: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>,
-    trophy: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
-  };
-  return icons[name] || null;
-};
-
-const App = () => {
-  // Navigation State
-  const [currentPage, setCurrentPage] = useState('landing');
-  const [userRole, setUserRole] = useState(null);
-  
-  // Game/Learning State
-  const [points, setPoints] = useState(0);
-  const [activeTab, setActiveTab] = useState('belajar');
-  const [selectedModule, setSelectedModule] = useState(null);
-  const [examMode, setExamMode] = useState(false);
-  const [quizFeedback, setQuizFeedback] = useState(null);
-  const [showCertificate, setShowCertificate] = useState(false);
-  const [completedModules, setCompletedModules] = useState([]);
-
-  // Data Peran Jabatan
-  const roles = [
-    { id: 'globaltelling', title: 'Global Telling', desc: 'Sensus Produksi 4 Bulanan' },
-    { id: 'akp', title: 'Petugas AKP', desc: 'Sensus Kerapatan Panen' },
-    { id: 'kap_insp', title: 'KAP Inspeksi', desc: 'Audit Mutu & Ancak' },
-    { id: 'kranicek', title: 'Krani Cek', desc: 'Administrasi TPH' },
-    { id: 'mandor1', title: 'Mandor 1', desc: 'Supervisi Lapangan' },
-    { id: 'krani1', title: 'Krani 1', desc: 'Admin Utama Afdeling' },
-    { id: 'kraniprod', title: 'Krani Produksi', desc: 'Rekap Hasil Panen' },
-    { id: 'mandorpanen', title: 'Mandor Panen', desc: 'Manajemen Pemanen' },
-  ];
-
-  // Database Modul
-  const modulesData = {
-    globaltelling: [
-      { id: 'gt1', title: 'Teknik Hitung Bunga & Buah', category: 'Sensus', pts: 100, question: "Bunga betina reseptif dihitung sebagai produksi bulan ke?", options: ["Bulan ke-1", "Bulan ke-5/6", "Bulan ke-12"], correct: 1 },
-      { id: 'gt2', title: 'Penomoran Pokok Sampel', category: 'Metode', pts: 100, question: "Berapa % pokok sampel untuk global telling?", options: ["10%", "5%", "1-2%"], correct: 2 }
-    ],
-    akp: [
-      { id: 'akp1', title: 'Metode Sampling AKP', category: 'Sensus', pts: 100, question: "Berapa baris sampel yang diambil untuk AKP?", options: ["Setiap baris", "Baris 1, 11, 21, dst", "Baris 5, 10, 15"], correct: 1 },
-    ],
-    kap_insp: [
-      { id: 'kap1', title: 'Audit Mutu Ancak', category: 'Inspeksi', pts: 150, question: "Apa definisi buah tinggal di ancak?", options: ["Buah matang tidak dipanen", "Brondolan di piringan", "Buah mentah jatuh"], correct: 0 },
-    ],
-    kranicek: [
-      { id: 'kc1', title: 'Verifikasi TPH', category: 'Admin', pts: 100, question: "Informasi apa yang wajib ada di nomor TPH?", options: ["Nama Pemanen", "No Pokok & No TPH", "Tahun Tanam"], correct: 1 },
-    ],
-    mandor1: [
-      { id: 'm1_1', title: 'Manajemen Afdeling', category: 'Supervisi', pts: 200, question: "Berapa rotasi panen standar per bulan?", options: ["1 Kali", "2-3 Kali", "Setiap hari"], correct: 1 },
-    ],
-    krani1: [
-      { id: 'k1_1', title: 'Input Data SAP', category: 'Sistem', pts: 150, question: "Kapan batas akhir input data produksi harian?", options: ["H+1 Pagi", "H+3", "Akhir bulan"], correct: 0 },
-    ],
-    kraniprod: [
-      { id: 'kp1', title: 'Rekapitulasi Produksi', category: 'Produksi', pts: 100, question: "Data apa yang menjadi dasar pembayaran premi?", options: ["Sensus Produksi", "Laporan Hasil Panen (LHP)", "Absensi"], correct: 1 },
-    ],
-    mandorpanen: [
-      { id: 'mp1', title: 'Kriteria Matang Panen', category: 'Teknis', pts: 150, question: "Syarat minimal buah matang di piringan adalah?", options: ["0 Brondolan", "Min 1-2 Brondolan/Kg", "Buah Hitam"], correct: 1 },
-      { id: 'mp2', title: 'Safety Pemanenan', category: 'K3', pts: 100, question: "APD wajib pemanen adalah?", options: ["Sandal jepit", "Helm & Sepatu Safety", "Topi kain"], correct: 1 }
-    ]
-  };
-
-  const currentModules = modulesData[userRole] || modulesData['globaltelling'];
-
-  const handleCompleteExam = () => {
-    if (quizFeedback === 'correct') {
-      setPoints(prev => prev + selectedModule.pts);
-      setCompletedModules(prev => [...prev, selectedModule.id]);
-      setShowCertificate(true);
-      setTimeout(() => {
-        setShowCertificate(false);
-        setExamMode(false);
-        setQuizFeedback(null);
-        setCurrentPage('dashboard');
-      }, 2000);
-    }
-  };
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [currentPage]);
-
-  // View Components
-  if (currentPage === 'landing') {
-    return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-white font-sans overflow-hidden">
-        <div className="w-20 h-20 bg-emerald-600 rounded-3xl flex items-center justify-center mb-6 shadow-2xl animate-bounce">
-          <Icon name="award" className="w-10 h-10" />
-        </div>
-        <h1 className="text-3xl font-black italic tracking-tighter mb-1 uppercase">L-SAWIT <span className="text-emerald-500">PRO</span></h1>
-        <p className="text-slate-500 text-[10px] font-bold tracking-[0.3em] mb-12 uppercase text-center">Learning Management System v2.0</p>
-        
-        <div className="w-full max-w-sm space-y-3 overflow-y-auto max-h-[50vh] pr-2 custom-scrollbar">
-          {roles.map(role => (
-            <button 
-              key={role.id}
-              onClick={() => { setUserRole(role.id); setCurrentPage('dashboard'); }}
-              className="w-full p-5 bg-slate-900/50 border border-white/5 rounded-2xl flex items-center hover:bg-slate-800 transition-all active:scale-95 text-left"
-            >
-              <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center mr-4 shrink-0">
-                <Icon name="user" className="w-5 h-5 text-emerald-500" />
-              </div>
-              <div className="overflow-hidden">
-                <h3 className="font-black text-xs uppercase tracking-tight truncate">{role.title}</h3>
-                <p className="text-[9px] text-slate-500 uppercase truncate">{role.desc}</p>
-              </div>
-              <Icon name="chevron" className="ml-auto w-4 h-4 text-slate-700 shrink-0" />
-            </button>
-          ))}
-        </div>
-        <p className="mt-8 text-[8px] text-slate-700 uppercase font-bold">PT. Perkebunan Nusantara Group</p>
-      </div>
-    );
-  }
-
-  if (currentPage === 'dashboard') {
-    const roleInfo = roles.find(r => r.id === userRole);
-    return (
-      <div className="min-h-screen bg-slate-50 pb-10 font-sans animate-in fade-in">
-        <div className="bg-slate-950 p-8 rounded-b-[40px] text-white shadow-xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
-          <div className="flex justify-between items-start mb-8 relative z-10">
-            <div>
-              <p className="text-emerald-500 text-[10px] font-black uppercase tracking-widest mb-1">Kurikulum Aktif</p>
-              <h2 className="text-2xl font-black italic uppercase tracking-tighter">{roleInfo?.title}</h2>
-            </div>
-            <button onClick={() => setCurrentPage('landing')} className="p-2 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
-              <Icon name="back" className="w-5 h-5" />
-            </button>
-          </div>
-          <div className="grid grid-cols-2 gap-4 relative z-10">
-            <div className="bg-white/5 p-4 rounded-3xl border border-white/5 backdrop-blur-sm">
-              <p className="text-[8px] text-slate-400 font-bold uppercase mb-1">Total XP</p>
-              <p className="text-xl font-black text-emerald-400">{points}</p>
-            </div>
-            <div className="bg-white/5 p-4 rounded-3xl border border-white/5 backdrop-blur-sm">
-              <p className="text-[8px] text-slate-400 font-bold uppercase mb-1">Modul Lulus</p>
-              <p className="text-xl font-black text-yellow-500">{completedModules.length}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="px-6 -mt-6 relative z-20">
-          <div className="bg-white p-2 rounded-2xl shadow-lg flex gap-1 border border-slate-100">
-            <button onClick={() => setActiveTab('belajar')} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all ${activeTab === 'belajar' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-50'}`}>Materi & Ujian</button>
-            <button onClick={() => setActiveTab('buku')} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all ${activeTab === 'buku' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-50'}`}>Buku Saku</button>
-          </div>
-        </div>
-
-        <div className="p-6 space-y-4">
-          {activeTab === 'belajar' ? (
-            currentModules.map(mod => (
-              <div key={mod.id} className="bg-white p-4 rounded-3xl border border-slate-100 flex items-center shadow-sm hover:shadow-md transition-shadow">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${completedModules.includes(mod.id) ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
-                  <Icon name={completedModules.includes(mod.id) ? "check" : "play"} className="w-6 h-6" />
-                </div>
-                <div className="ml-4 flex-1 overflow-hidden">
-                  <p className="text-[8px] font-black text-slate-400 uppercase">{mod.category}</p>
-                  <h4 className="text-[11px] font-black uppercase tracking-tight text-slate-800 truncate">{mod.title}</h4>
-                </div>
-                <button 
-                  onClick={() => { setSelectedModule(mod); setCurrentPage('player'); setExamMode(false); setQuizFeedback(null); }}
-                  className="bg-slate-50 p-2 rounded-xl hover:bg-slate-100 transition-colors"
-                >
-                  <Icon name="chevron" className="w-4 h-4 text-slate-300" />
-                </button>
-              </div>
-            ))
-          ) : (
-            <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm text-center">
-              <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Icon name="award" className="w-8 h-8" />
-              </div>
-              <h3 className="text-sm font-black uppercase mb-2">PANDUAN LAPANGAN</h3>
-              <p className="text-[10px] text-slate-500 uppercase leading-relaxed">Gunakan bagian ini untuk membaca panduan teknis cepat di lapangan tanpa perlu mengikuti ujian.</p>
-              <div className="mt-6 p-4 bg-indigo-50 rounded-2xl text-[9px] font-bold text-indigo-900 uppercase">
-                Fitur dalam pengembangan
-              </div>
-            </div>
-          )}
-        </div>
-
-        {showCertificate && (
-          <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-6 text-center backdrop-blur-md">
-            <div className="bg-white rounded-[40px] p-10 w-full max-w-xs animate-in zoom-in duration-300 shadow-2xl">
-              <div className="w-20 h-20 bg-yellow-100 text-yellow-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Icon name="trophy" className="w-10 h-10" />
-              </div>
-              <h2 className="text-2xl font-black uppercase italic mb-2">KOMPETEN!</h2>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-6">Sertifikat Modul Terbit</p>
-              <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-500 animate-[progress_2s_linear]"></div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  if (currentPage === 'player') {
-    return (
-      <div className="min-h-screen bg-slate-950 text-white flex flex-col font-sans animate-in slide-in-from-right">
-        <div className="p-6 flex items-center gap-4 border-b border-white/5">
-          <button onClick={() => setCurrentPage('dashboard')} className="p-2 bg-white/5 rounded-xl hover:bg-white/10"><Icon name="back" className="w-5 h-5" /></button>
-          <div className="overflow-hidden">
-            <p className="text-[8px] text-emerald-500 font-black uppercase">Modul Belajar</p>
-            <h3 className="text-xs font-black uppercase italic tracking-tighter truncate">{selectedModule?.title}</h3>
-          </div>
-        </div>
-
-        <div className="flex-1 p-8 flex flex-col justify-center max-w-md mx-auto w-full">
-          {!examMode ? (
-            <div className="text-center animate-in fade-in">
-              <div className="aspect-video bg-slate-900 rounded-[30px] flex flex-col items-center justify-center border border-white/10 mb-8 group relative overflow-hidden">
-                <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <Icon name="play" className="w-12 h-12 text-indigo-500 mb-2 relative z-10" />
-                <p className="text-[10px] font-black uppercase text-slate-600 relative z-10">[ VIDEO SIMULASI JABATAN ]</p>
-              </div>
-              <h4 className="text-sm font-black uppercase mb-4 italic">Ringkasan Materi</h4>
-              <p className="text-xs text-slate-400 leading-relaxed mb-10 uppercase tracking-tight">Pelajari setiap detail teknis dalam video sebelum mengambil ujian kompetensi untuk mendapatkan poin XP dan sertifikat.</p>
-              <button onClick={() => setExamMode(true)} className="w-full py-5 bg-emerald-600 text-white rounded-[25px] font-black uppercase text-[11px] tracking-widest shadow-xl hover:bg-emerald-500 transition-colors active:scale-95">Mulai Ujian</button>
-            </div>
-          ) : (
-            <div className="animate-in slide-in-from-bottom">
-              <p className="text-center text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-6">Ujian Kompetensi</p>
-              <h2 className="text-lg font-black text-center mb-10 uppercase italic leading-tight">"{selectedModule?.question}"</h2>
-              <div className="space-y-3">
-                {selectedModule?.options.map((opt, idx) => (
-                  <button 
-                    key={idx}
-                    disabled={quizFeedback === 'correct'}
-                    onClick={() => setQuizFeedback(idx === selectedModule.correct ? 'correct' : 'wrong')}
-                    className={`w-full p-6 rounded-[25px] text-[11px] font-black uppercase text-left transition-all border-2 flex justify-between items-center ${
-                      quizFeedback && idx === selectedModule.correct ? 'bg-emerald-600 border-emerald-400 scale-105 z-10' : 
-                      quizFeedback === 'wrong' && idx !== selectedModule.correct ? 'bg-slate-900 border-white/5 opacity-50' : 
-                      quizFeedback === 'wrong' && idx === selectedModule.correct ? 'bg-emerald-600/20 border-emerald-500/50' : 'bg-white/5 border-white/5 hover:border-white/20'
-                    }`}
-                  >
-                    <span>{opt}</span>
-                    {quizFeedback && idx === selectedModule.correct && <Icon name="check" className="w-4 h-4" />}
-                  </button>
-                ))}
-              </div>
-              {quizFeedback === 'correct' && (
-                <button onClick={handleCompleteExam} className="mt-10 w-full py-5 bg-emerald-500 text-white rounded-[25px] font-black uppercase text-[11px] shadow-lg animate-bounce">Selesaikan & Simpan</button>
-              )}
-              {quizFeedback === 'wrong' && (
-                <div className="mt-8 text-center animate-in shake">
-                  <p className="text-rose-500 font-black text-[10px] uppercase mb-4">Jawaban Salah. Silakan tonton ulang materi!</p>
-                  <button onClick={() => { setExamMode(false); setQuizFeedback(null); }} className="text-[9px] font-black uppercase text-slate-400 border-b border-slate-400 pb-1">Kembali ke materi</button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-        <style>{`
-          @keyframes progress { from { width: 0%; } to { width: 100%; } }
-          .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-          .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-          .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-          .animate-in { animation: fadeIn 0.4s ease-out; }
-          @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-          .animate-shake { animation: shake 0.5s linear; }
-          @keyframes shake {
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L-SAWIT PRO - Learning Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        @keyframes progress { from { width: 0%; } to { width: 100%; } }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .animate-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-5px); }
             75% { transform: translateX(5px); }
-          }
-        `}</style>
-      </div>
-    );
-  }
+        }
+        .animate-shake { animation: shake 0.5s linear; }
+    </style>
+</head>
+<body class="bg-slate-950">
+    <div id="root"></div>
 
-  return null;
-};
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-export default App;
+        const Icon = ({ name, className = "w-6 h-6" }) => {
+            const icons = {
+                award: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"/><circle cx="12" cy="8" r="6"/></svg>,
+                chevron: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m9 18 6-6-6-6"/></svg>,
+                play: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><path d="m9 8 8 4-8 4Z"/></svg>,
+                check: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M20 6 9 17l-5-5"/></svg>,
+                user: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+                back: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>,
+                trophy: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+            };
+            return icons[name] || null;
+        };
+
+        const App = () => {
+            const [currentPage, setCurrentPage] = useState('landing');
+            const [userRole, setUserRole] = useState(null);
+            const [points, setPoints] = useState(0);
+            const [activeTab, setActiveTab] = useState('belajar');
+            const [selectedModule, setSelectedModule] = useState(null);
+            const [examMode, setExamMode] = useState(false);
+            const [quizFeedback, setQuizFeedback] = useState(null);
+            const [showCertificate, setShowCertificate] = useState(false);
+            const [completedModules, setCompletedModules] = useState([]);
+
+            const roles = [
+                { id: 'globaltelling', title: 'Global Telling', desc: 'Sensus Produksi 4 Bulanan' },
+                { id: 'akp', title: 'Petugas AKP', desc: 'Sensus Kerapatan Panen' },
+                { id: 'kap_insp', title: 'KAP Inspeksi', desc: 'Audit Mutu & Ancak' },
+                { id: 'kranicek', title: 'Krani Cek', desc: 'Administrasi TPH' },
+                { id: 'mandor1', title: 'Mandor 1', desc: 'Supervisi Lapangan' },
+                { id: 'krani1', title: 'Krani 1', desc: 'Admin Utama Afdeling' },
+                { id: 'kraniprod', title: 'Krani Produksi', desc: 'Rekap Hasil Panen' },
+                { id: 'mandorpanen', title: 'Mandor Panen', desc: 'Manajemen Pemanen' },
+            ];
+
+            const modulesData = {
+                globaltelling: [
+                    { id: 'gt1', title: 'Teknik Hitung Bunga & Buah', category: 'Sensus', pts: 100, question: "Bunga betina reseptif dihitung sebagai produksi bulan ke?", options: ["Bulan ke-1", "Bulan ke-5/6", "Bulan ke-12"], correct: 1 },
+                    { id: 'gt2', title: 'Penomoran Pokok Sampel', category: 'Metode', pts: 100, question: "Berapa % pokok sampel untuk global telling?", options: ["10%", "5%", "1-2%"], correct: 2 }
+                ],
+                mandorpanen: [
+                    { id: 'mp1', title: 'Kriteria Matang Panen', category: 'Teknis', pts: 150, question: "Syarat minimal buah matang di piringan adalah?", options: ["0 Brondolan", "Min 1-2 Brondolan/Kg", "Buah Hitam"], correct: 1 },
+                    { id: 'mp2', title: 'Safety Pemanenan', category: 'K3', pts: 100, question: "APD wajib pemanen adalah?", options: ["Sandal jepit", "Helm & Sepatu Safety", "Topi kain"], correct: 1 }
+                ]
+            };
+
+            const currentModules = modulesData[userRole] || modulesData['globaltelling'];
+
+            useEffect(() => {
+                const handleHashChange = () => {
+                    const hash = window.location.hash;
+                    if (!hash || hash === '#/') setCurrentPage('landing');
+                    else if (hash.startsWith('#/dashboard')) setCurrentPage('dashboard');
+                };
+                window.addEventListener('hashchange', handleHashChange);
+                return () => window.removeEventListener('hashchange', handleHashChange);
+            }, []);
+
+            const handleCompleteExam = () => {
+                if (quizFeedback === 'correct') {
+                    setPoints(prev => prev + selectedModule.pts);
+                    setCompletedModules(prev => [...prev, selectedModule.id]);
+                    setShowCertificate(true);
+                    setTimeout(() => {
+                        setShowCertificate(false);
+                        setExamMode(false);
+                        setQuizFeedback(null);
+                        setCurrentPage('dashboard');
+                        window.location.hash = '#/dashboard';
+                    }, 2000);
+                }
+            };
+
+            if (currentPage === 'landing') {
+                return (
+                    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-white overflow-hidden">
+                        <div className="w-20 h-20 bg-emerald-600 rounded-3xl flex items-center justify-center mb-6 shadow-2xl animate-bounce">
+                            <Icon name="award" className="w-10 h-10" />
+                        </div>
+                        <h1 className="text-3xl font-black italic tracking-tighter mb-1 uppercase">L-SAWIT <span className="text-emerald-500">PRO</span></h1>
+                        <p className="text-slate-500 text-[10px] font-bold tracking-[0.3em] mb-12 uppercase text-center">Learning Management System v2.0</p>
+                        
+                        <div className="w-full max-w-sm space-y-3 overflow-y-auto max-h-[50vh] pr-2 custom-scrollbar">
+                            {roles.map(role => (
+                                <button 
+                                    key={role.id}
+                                    onClick={() => { setUserRole(role.id); setCurrentPage('dashboard'); window.location.hash = '#/dashboard'; }}
+                                    className="w-full p-5 bg-slate-900/50 border border-white/5 rounded-2xl flex items-center hover:bg-slate-800 transition-all active:scale-95 text-left"
+                                >
+                                    <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center mr-4 shrink-0">
+                                        <Icon name="user" className="w-5 h-5 text-emerald-500" />
+                                    </div>
+                                    <div className="overflow-hidden">
+                                        <h3 className="font-black text-xs uppercase tracking-tight truncate">{role.title}</h3>
+                                        <p className="text-[9px] text-slate-500 uppercase truncate">{role.desc}</p>
+                                    </div>
+                                    <Icon name="chevron" className="ml-auto w-4 h-4 text-slate-700 shrink-0" />
+                                </button>
+                            ))}
+                        </div>
+                        <p className="mt-8 text-[8px] text-slate-700 uppercase font-bold">PT. Perkebunan Nusantara Group</p>
+                    </div>
+                );
+            }
+
+            if (currentPage === 'dashboard') {
+                const roleInfo = roles.find(r => r.id === userRole);
+                return (
+                    <div className="min-h-screen bg-slate-50 pb-10 animate-in">
+                        <div className="bg-slate-950 p-8 rounded-b-[40px] text-white shadow-xl relative overflow-hidden">
+                            <div className="flex justify-between items-start mb-8 relative z-10">
+                                <div>
+                                    <p className="text-emerald-500 text-[10px] font-black uppercase mb-1">Kurikulum Aktif</p>
+                                    <h2 className="text-2xl font-black italic uppercase tracking-tighter">{roleInfo?.title}</h2>
+                                </div>
+                                <button onClick={() => { setCurrentPage('landing'); window.location.hash = '#/'; }} className="p-2 bg-white/5 rounded-xl hover:bg-white/10">
+                                    <Icon name="back" className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 relative z-10">
+                                <div className="bg-white/5 p-4 rounded-3xl border border-white/5">
+                                    <p className="text-[8px] text-slate-400 font-bold uppercase mb-1">Total XP</p>
+                                    <p className="text-xl font-black text-emerald-400">{points}</p>
+                                </div>
+                                <div className="bg-white/5 p-4 rounded-3xl border border-white/5">
+                                    <p className="text-[8px] text-slate-400 font-bold uppercase mb-1">Modul Lulus</p>
+                                    <p className="text-xl font-black text-yellow-500">{completedModules.length}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="px-6 -mt-6 relative z-20">
+                            <div className="bg-white p-2 rounded-2xl shadow-lg flex gap-1 border border-slate-100">
+                                <button onClick={() => setActiveTab('belajar')} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all ${activeTab === 'belajar' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-50'}`}>Materi & Ujian</button>
+                                <button onClick={() => setActiveTab('buku')} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all ${activeTab === 'buku' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-50'}`}>Buku Saku</button>
+                            </div>
+                        </div>
+
+                        <div className="p-6 space-y-4">
+                            {activeTab === 'belajar' ? (
+                                currentModules.map(mod => (
+                                    <div key={mod.id} className="bg-white p-4 rounded-3xl border border-slate-100 flex items-center shadow-sm">
+                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${completedModules.includes(mod.id) ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                                            <Icon name={completedModules.includes(mod.id) ? "check" : "play"} className="w-6 h-6" />
+                                        </div>
+                                        <div className="ml-4 flex-1 overflow-hidden">
+                                            <p className="text-[8px] font-black text-slate-400 uppercase">{mod.category}</p>
+                                            <h4 className="text-[11px] font-black uppercase text-slate-800 truncate">{mod.title}</h4>
+                                        </div>
+                                        <button 
+                                            onClick={() => { setSelectedModule(mod); setCurrentPage('player'); setExamMode(false); setQuizFeedback(null); }}
+                                            className="bg-slate-50 p-2 rounded-xl hover:bg-slate-100"
+                                        >
+                                            <Icon name="chevron" className="w-4 h-4 text-slate-300" />
+                                        </button>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm text-center">
+                                    <Icon name="award" className="w-8 h-8 text-indigo-600 mx-auto mb-4" />
+                                    <h3 className="text-sm font-black uppercase mb-2">PANDUAN LAPANGAN</h3>
+                                    <p className="text-[10px] text-slate-500 uppercase">Fitur Buku Saku Digital segera hadir.</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {showCertificate && (
+                            <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-6 text-center backdrop-blur-md">
+                                <div className="bg-white rounded-[40px] p-10 w-full max-w-xs animate-in shadow-2xl">
+                                    <Icon name="trophy" className="w-10 h-10 text-yellow-500 mx-auto mb-6" />
+                                    <h2 className="text-2xl font-black uppercase italic mb-2">KOMPETEN!</h2>
+                                    <p className="text-[10px] text-slate-500 font-bold uppercase mb-6">Sertifikat Modul Terbit</p>
+                                    <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
+                                        <div className="h-full bg-emerald-500 animate-[progress_2s_linear]"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+
+            if (currentPage === 'player') {
+                return (
+                    <div className="min-h-screen bg-slate-950 text-white flex flex-col animate-in">
+                        <div className="p-6 flex items-center gap-4 border-b border-white/5">
+                            <button onClick={() => setCurrentPage('dashboard')} className="p-2 bg-white/5 rounded-xl"><Icon name="back" className="w-5 h-5" /></button>
+                            <h3 className="text-xs font-black uppercase italic truncate">{selectedModule?.title}</h3>
+                        </div>
+                        <div className="flex-1 p-8 flex flex-col justify-center max-w-md mx-auto w-full">
+                            {!examMode ? (
+                                <div className="text-center">
+                                    <div className="aspect-video bg-slate-900 rounded-[30px] flex flex-col items-center justify-center border border-white/10 mb-8">
+                                        <Icon name="play" className="w-12 h-12 text-indigo-500 mb-2" />
+                                        <p className="text-[10px] font-black uppercase text-slate-600">[ VIDEO SIMULASI JABATAN ]</p>
+                                    </div>
+                                    <button onClick={() => setExamMode(true)} className="w-full py-5 bg-emerald-600 text-white rounded-[25px] font-black uppercase text-[11px] tracking-widest shadow-xl">Mulai Ujian</button>
+                                </div>
+                            ) : (
+                                <div className="animate-in">
+                                    <h2 className="text-lg font-black text-center mb-10 uppercase italic">"{selectedModule?.question}"</h2>
+                                    <div className="space-y-3">
+                                        {selectedModule?.options.map((opt, idx) => (
+                                            <button 
+                                                key={idx}
+                                                onClick={() => setQuizFeedback(idx === selectedModule.correct ? 'correct' : 'wrong')}
+                                                className={`w-full p-6 rounded-[25px] text-[11px] font-black uppercase text-left border-2 ${
+                                                    quizFeedback && idx === selectedModule.correct ? 'bg-emerald-600 border-emerald-400' : 'bg-white/5 border-white/5'
+                                                }`}
+                                            >
+                                                {opt}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {quizFeedback === 'correct' && (
+                                        <button onClick={handleCompleteExam} className="mt-10 w-full py-5 bg-emerald-500 text-white rounded-[25px] font-black uppercase text-[11px] animate-bounce">Simpan Progress</button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
